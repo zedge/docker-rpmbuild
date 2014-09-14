@@ -38,7 +38,7 @@ Docker Options:
                                 docker (example: 1.12)
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import json
 import sys
@@ -48,8 +48,11 @@ from rpmbuild import Packager, PackagerContext, PackagerException
 from rpmbuild.config import get_docker_config
 
 
-def log(message, file=sys.stdout):
-    print(message, file)
+def log(message, file=None):
+    if file is not None:
+        print(message, file)
+    else:
+        print(message)
 
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
@@ -74,7 +77,7 @@ def main():
     try:
         with Packager(context,  get_docker_config(args)) as p:
             for line in p.build_image():
-                parsed = json.loads(line.decode(encoding='UTF-8'))
+                parsed = json.loads(line.decode('utf-8'))
                 if 'stream' not in parsed:
                     log(parsed)
                     if 'error' in parsed:
@@ -90,7 +93,7 @@ def main():
             container, logs = p.build_package()
 
             for line in logs:
-                log(line.decode(encoding='UTF-8').strip())
+                log(line.decode('utf-8').strip())
 
             for path in p.export_package(args['--output']):
                 log('Wrote: %s' % path)
