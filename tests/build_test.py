@@ -3,7 +3,7 @@ from docker import Client
 from docopt import DocoptExit
 from mock import call, MagicMock, patch
 import sys
-from unittest2 import TestCase
+from unittest import TestCase
 from rpmbuild import build, PackagerException
 
 
