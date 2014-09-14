@@ -1,4 +1,4 @@
-from __future__ import with_statement
+from __future__ import with_statement, unicode_literals
 from docker import Client
 from docopt import DocoptExit
 from mock import call, MagicMock, patch
@@ -70,7 +70,7 @@ class BuildTest(TestCase):
 
     @patch('rpmbuild.build.PackagerContext', autospec=True)
     @patch('rpmbuild.build.Packager', autospec=True)
-    @patch('__builtin__.print')
+    @patch('rpmbuild.build.log')
     def test_build_valid_exit_zero(self, print_mock, packager_mock, context_mock):
         with patch('sys.argv', ['docker-rpmbuild',
                          'build',
