@@ -41,13 +41,15 @@ Docker Options:
 from __future__ import print_function
 
 import json
-import os
 import sys
 
 from docopt import docopt
 from rpmbuild import Packager, PackagerContext, PackagerException
 from rpmbuild.config import get_docker_config
 
+
+def log(message, file=sys.stdout):
+    print(message, file)
 
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
@@ -74,20 +76,27 @@ def main():
             for line in p.build_image():
                 parsed = json.loads(line.decode(encoding='UTF-8'))
                 if 'stream' not in parsed:
-                    print(parsed)
+                    log(parsed)
+                    if 'error' in parsed:
+                        if 'errorDetail' in parsed:
+                            raise PackagerException(
+                                "{0} : {1}".format(
+                                    parsed['error'],
+                                    parsed['errorDetail']))
+                        raise PackagerException(parsed['error'])
                 else:
-                    print(parsed['stream'].strip())
+                    log(parsed['stream'].strip())
 
             container, logs = p.build_package()
 
             for line in logs:
-                print(line.decode(encoding='UTF-8').strip())
+                log(line.decode(encoding='UTF-8').strip())
 
             for path in p.export_package(args['--output']):
-                print('Wrote: %s' % path)
+                log('Wrote: %s' % path)
 
     except PackagerException:
-        print('Container build failed!', file=sys.stderr)
+        log('Container build failed!', file=sys.stderr)
         sys.exit(1)
 
 if __name__ == '__main__':
