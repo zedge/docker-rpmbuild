@@ -33,8 +33,6 @@ class BuildTest(TestCase):
             packager_mock_enter.build_image.side_effect = PackagerException('foo')
             packager_mock.return_value.__enter__.return_value = packager_mock_enter
 
-            # (caught by with?)
-            #with self.assertRaises(PackagerException):
             build.main()
 
         sys_exit_mock.assert_called_once_with(1)
@@ -61,8 +59,6 @@ class BuildTest(TestCase):
             packager_mock_enter.build_package.return_value = [MagicMock(spec=Client), [MagicMock()]]
             packager_mock.return_value.__enter__.return_value = packager_mock_enter
 
-            # Why? :(
-            #with self.assertRaises(PackagerException):
             build.main()
             print_mock.assert_any_call(
                 {"error":"Error...", "errorDetail":{"code": 123, "message": "Error..."}})
