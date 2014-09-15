@@ -18,8 +18,8 @@ class BuildTest(TestCase):
             with self.assertRaises(DocoptExit):
                 build.main()
 
-    @patch('rpmbuild.build.PackagerContext', autospec=True)
-    @patch('rpmbuild.build.Packager', autospec=True)
+    @patch('rpmbuild.build.PackagerContext')
+    @patch('rpmbuild.build.Packager')
     @patch('rpmbuild.build.log')
     @patch('sys.exit')
     def test_build_and_packager_has_packagerexception_has_exit_code_1(self, sys_exit_mock, log_mock, packager_mock, context_mock):
@@ -41,8 +41,8 @@ class BuildTest(TestCase):
         log_mock.assert_called_once_with('Container build failed!', file=sys.stderr)
 
 
-    @patch('rpmbuild.build.PackagerContext', autospec=True)
-    @patch('rpmbuild.build.Packager', autospec=True)
+    @patch('rpmbuild.build.PackagerContext')
+    @patch('rpmbuild.build.Packager')
     @patch('rpmbuild.build.log')
     @patch('sys.exit')
     def test_build_raises_package_exception_if_parser_finds_errors(self, sys_exit_mock, print_mock, packager_mock, context_mock):
@@ -68,8 +68,8 @@ class BuildTest(TestCase):
                 {"error":"Error...", "errorDetail":{"code": 123, "message": "Error..."}})
 
 
-    @patch('rpmbuild.build.PackagerContext', autospec=True)
-    @patch('rpmbuild.build.Packager', autospec=True)
+    @patch('rpmbuild.build.PackagerContext')
+    @patch('rpmbuild.build.Packager')
     @patch('rpmbuild.build.log')
     def test_build_valid_exit_zero(self, print_mock, packager_mock, context_mock):
         with patch('sys.argv', ['docker-rpmbuild',
@@ -102,8 +102,8 @@ class BuildTest(TestCase):
             packager_mock_enter.assert_has_calls(calls_on_packager)
 
 
-    @patch('rpmbuild.build.PackagerContext', autospec=True)
-    @patch('rpmbuild.build.Packager', autospec=True)
+    @patch('rpmbuild.build.PackagerContext')
+    @patch('rpmbuild.build.Packager')
     @patch('rpmbuild.build.log')
     def test_rebuild_valid_exit_zero(self, print_mock, packager_mock, context_mock):
         with patch('sys.argv', ['docker-rpmbuild',
