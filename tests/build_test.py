@@ -55,8 +55,8 @@ class BuildTest(TestCase):
 
             packager_mock_enter = MagicMock()
             packager_mock_enter.build_image.return_value = [
-                '{"stream": "Step 1..."}',
-                '{"error":"Error...", "errorDetail":{"code": 123, "message": "Error..."}}',
+                b'{"stream": "Step 1..."}',
+                b'{"error":"Error...", "errorDetail":{"code": 123, "message": "Error..."}}',
             ]
             packager_mock_enter.build_package.return_value = [MagicMock(spec=Client), [MagicMock()]]
             packager_mock.return_value.__enter__.return_value = packager_mock_enter
@@ -83,8 +83,8 @@ class BuildTest(TestCase):
 
             packager_mock_enter = MagicMock()
             packager_mock_enter.build_image.return_value = [
-                '{"stream": "Step 1..."}',
-                '{"stream": "..."}'
+                b'{"stream": "Step 1..."}',
+                b'{"stream": "..."}'
             ]
             packager_mock_enter.export_package.return_value = ['/tmp/a_build.rpm']
             packager_mock_enter.build_package.return_value = [MagicMock(spec=Client), [MagicMock()]]
@@ -113,8 +113,8 @@ class BuildTest(TestCase):
         ]):
             packager_mock_enter = MagicMock()
             packager_mock_enter.build_image.return_value = [
-                '{"stream": "Step 1..."}',
-                '{"stream": "..."}'
+                b'{"stream": "Step 1..."}',
+                b'{"stream": "..."}'
             ]
             packager_mock_enter.export_package.return_value = ['/rpmbuild/a_build.rpm']
             packager_mock_enter.build_package.return_value = [MagicMock(spec=Client), [MagicMock()]]
