@@ -146,3 +146,18 @@ version=1.11
 
             config = get_docker_config(docopt_with_timeout_and_with_config)
             self.assertEqual(config.get('timeout'), 48)
+
+    def test_get_docker_config_has_no_timeout_nor_timeout_in_docopts_returns_internal_default_value(self):
+        docopt_with_timeout_and_with_config = {
+            '--config': '/tmp/foo',
+            '--docker-base_url': None,
+            '--docker-version': None,
+            '--docker-timeout': None,
+        }
+        with mock.patch('rpmbuild.config.read_config') as read_config_mock:
+            read_config_mock.return_value = defaultdict(None, {
+                'version': '0.11'
+            })
+            config = get_docker_config(docopt_with_timeout_and_with_config)
+            self.assertEqual(config.get('timeout'), int(DEFAULT_TIMEOUT))
+
