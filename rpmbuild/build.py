@@ -77,7 +77,7 @@ def main():
     try:
         with Packager(context,  get_docker_config(args)) as p:
             for line in p.build_image():
-                parsed = json.loads(line.decode(encoding='utf-8'))
+                parsed = json.loads(line.decode('utf-8'))
                 if 'stream' not in parsed:
                     log(parsed)
                     if 'error' in parsed:
@@ -93,7 +93,7 @@ def main():
             container, logs = p.build_package()
 
             for line in logs:
-                log(line.decode(encoding='utf-8').strip())
+                log(line.decode('utf-8').strip())
 
             for path in p.export_package(args['--output']):
                 log('Wrote: %s' % path)
