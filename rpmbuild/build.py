@@ -3,6 +3,8 @@
 """Docker rpmbuild.
 
 Usage:
+    docker-rpmbuild build [--spec=<file>]
+    docker-rpmbuild build [--config=<file>]
     docker-rpmbuild build [--config=<file>]
                           [--docker-base_url=<url>]
                           [--docker-timeout=<seconds>]
@@ -20,7 +22,7 @@ Usage:
 
 Options:
     -h --help            Show this screen.
-    --config=<file>      Configuration file [default: /etc/docker-packager/rpmbuild.ini]
+    --config=<file>      Configuration file
     --define=<option>    Pass a macro to rpmbuild.
     --output=<path>      Output directory for RPMs [default: .].
     --source=<tarball>   Tarball containing package sources.
@@ -39,13 +41,15 @@ Docker Options:
 """
 
 from __future__ import print_function, unicode_literals
+from collections import defaultdict
 
 import json
+import os
 import sys
 
 from docopt import docopt
 from rpmbuild import Packager, PackagerContext, PackagerException
-from rpmbuild.config import get_docker_config
+from rpmbuild.config import get_docker_config, read_config
 
 
 def log(message, file=None):
@@ -54,27 +58,45 @@ def log(message, file=None):
     else:
         print(message)
 
+
+def get_context(args):
+    config = defaultdict(None)
+
+    if args['--config'] is not None and os.path.exists(args['--config']):
+        config = read_config(args['--config'])
+    elif args['--config'] is None:
+        if os.path.exists(args['--spec']):
+            base_name = os.path.basename(args['--spec'])
+            config_base_name = '.dockerrpm'.join(base_name.rsplit('.spec', 1))
+            full_path_config = os.path.join(os.path.dirname(os.path.realpath(args['--spec'])), config_base_name)
+            if os.path.exists(full_path_config):
+                with open(full_path_config) as config_filehandle:
+                    config = read_config(config_filehandle)
+
+    if args['build'] or config.get('build'):
+        context = PackagerContext(
+            args['<image>'] or config.get('image'),
+            defines=args['--define'] or config.get('define'),
+            sources=args['--source'] or config.get('source'),
+            sources_dir=args['--sources-dir'] or config.get('sources_dir'),
+            spec=args['--spec'] or config.get('spec'),
+            macrofiles=args['--macrofile'] or config.get('macrofile'),
+            retrieve=args['--retrieve'] or config.get('retrieve'),
+        )
+
+    if args['rebuild'] or config.get('rebuild'):
+        context = PackagerContext(
+            args['<image>'] or config.get('image'),
+            srpm=args['--srpm'] or config.get('srpm')
+        )
+    return context
+
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
-
-    if args['build']:
-        context = PackagerContext(
-            args['<image>'],
-            defines=args['--define'],
-            sources=args['--source'],
-            sources_dir=args['--sources-dir'],
-            spec=args['--spec'],
-            macrofiles=args['--macrofile'],
-            retrieve=args['--retrieve'],
-        )
-
-    if args['rebuild']:
-        context = PackagerContext(
-            args['<image>'],
-            srpm=args['--srpm']
-        )
+    context = get_context(args)
 
     try:
+        # todo: refactor get_docker_config to just use config.
         with Packager(context,  get_docker_config(args)) as p:
             for line in p.build_image():
                 parsed = json.loads(line.decode(encoding='utf-8'))

@@ -1,9 +1,11 @@
+from __future__ import unicode_literals
+
 # Python 2/3 Compatibility
 try:
-    from ConfigParser import ConfigParser
+    import ConfigParser as configparser
     from StringIO import StringIO
 except ImportError:
-    from configparser import ConfigParser
+    import configparser
     from io import StringIO
 
 from collections import defaultdict
@@ -13,22 +15,52 @@ import os
 DEFAULT_TIMEOUT = '600'
 
 
-def read_config(config_file):
-    config = ConfigParser()
-    config.readfp(StringIO(config_file))
+def read_section(section, valid_keys, config):
+    """Extract and create a dict with config values
 
-    section = 'docker'
+    :param section: section to retrieve.
+    :param valid_keys: dictionary containing valid keys, where key is key in config and value represents data type
+    :param config: config
+    :return dict
+
+    :type section: unicode
+    :type valid_keys: dict
+    """
     config_dict = {}
     if config.has_section(section):
-        if config.has_option(section, 'version'):
-            config_dict.update({'version': config.get(section, 'version')})
-        if config.has_option(section, 'timeout'):
-            config_dict.update({'timeout': config.getint(section, 'timeout')})
-        if config.has_option(section, 'base_url'):
-            config_dict.update({'base_url': config.get(section, 'base_url')})
-
+        for key, data_type in valid_keys.items():
+            if config.has_option(section, key):
+                if data_type == 'getint':
+                    config_dict.update({key: config.getint(section, key)})
+                elif data_type == 'getboolean':
+                    config_dict.update({key: config.getboolean(section, key)})
+                elif data_type == 'multi-get':
+                    config_dict.update({key: config.get(section, key).split('\n')})
+                else:
+                    config_dict.update({key: config.get(section, key)})
         # Remove None values.
         config_dict = dict((k, v) for k, v in config_dict.items() if v)
+    return config_dict
+
+def read_config(config_file):
+    config = configparser.RawConfigParser()
+    config.readfp(config_file)
+
+    config_dict = read_section('docker', {
+        'version': 'get',
+        'timeout': 'getint',
+        'base_url': 'get'
+    }, config)
+    config_dict.update(read_section('build', {
+        'define': 'multi-get',
+        'source': 'multi-get',
+        'sources_dir': 'get',
+        'spec': 'get',
+        'macrofile': 'multi-get',
+        'retrieve': 'getboolean',
+        'output': 'get',
+        'image': 'get'
+    }, config))
 
     return defaultdict(None, config_dict)
 
