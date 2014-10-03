@@ -13,7 +13,8 @@ setup(
         'docopt>=0.6.1',
         'Jinja2>=2.6',
     ],
-    setup_requires=[
+    test_requires=[
+        'unittest2==0.5.1',
         'mock>=1.0.1',
     ],
     test_suite = 'tests',

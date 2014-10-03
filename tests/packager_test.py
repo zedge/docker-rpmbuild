@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from mock import mock_open, patch, MagicMock
-import unittest
+import unittest2 as unittest
 
 from rpmbuild import Packager, PackagerException
 

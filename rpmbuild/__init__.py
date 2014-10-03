@@ -73,6 +73,8 @@ class PackagerContext(object):
 
         if image is None:
             raise PackagerException("Must provide base docker <image>")
+        if spec is None and srpm is None:
+            raise PackagerException("Must provide <spec> or <srpm>. See -h")
 
 
     def __str__(self):

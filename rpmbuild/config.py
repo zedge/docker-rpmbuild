@@ -14,8 +14,30 @@ import os
 
 DEFAULT_TIMEOUT = '600'
 
+CONFIG_OPTIONS_DOCKER = {
+    'version': 'get',
+    'timeout': 'getint',
+    'base_url': 'get'
+}
 
-def read_section(section, valid_keys, config):
+CONFIG_OPTIONS_BUILD = {
+    'define': 'multi-get',
+    'source': 'multi-get',
+    'sources_dir': 'get',
+    'spec': 'get',
+    'macrofile': 'multi-get',
+    'retrieve': 'getboolean',
+    'output': 'get',
+    'image': 'get'
+}
+
+SECTION_CONFIG_MAP = {
+    'docker': CONFIG_OPTIONS_DOCKER,
+    'build': CONFIG_OPTIONS_BUILD
+}
+
+
+def _read_section(section, valid_keys, config):
     """Extract and create a dict with config values
 
     :param section: section to retrieve.
@@ -42,50 +64,56 @@ def read_section(section, valid_keys, config):
         config_dict = dict((k, v) for k, v in config_dict.items() if v)
     return config_dict
 
-def read_config(config_file):
+def _read_config(config_file):
     config = configparser.RawConfigParser()
     config.readfp(config_file)
+    config_dict = {}
 
-    config_dict = read_section('docker', {
-        'version': 'get',
-        'timeout': 'getint',
-        'base_url': 'get'
-    }, config)
-    config_dict.update(read_section('build', {
-        'define': 'multi-get',
-        'source': 'multi-get',
-        'sources_dir': 'get',
-        'spec': 'get',
-        'macrofile': 'multi-get',
-        'retrieve': 'getboolean',
-        'output': 'get',
-        'image': 'get'
-    }, config))
+    for section, config_options in SECTION_CONFIG_MAP.iteritems():
+        config_dict.update(_read_section(section, config_options, config))
 
     return defaultdict(None, config_dict)
 
 
-def get_docker_config(docopt_args):
-    docker_config = defaultdict(None)
-    docker_config_overrides = defaultdict(None)
-    docker_config_overrides.update(
-        {'base_url': docopt_args['--docker-base_url'],
-         'timeout': int(docopt_args['--docker-timeout'] or DEFAULT_TIMEOUT),
-         'version': docopt_args['--docker-version']})
+def _open_and_read_config(path):
+    with open(path) as config_filehandle:
+        return _read_config(config_filehandle)
 
-    if docopt_args['--config'] is not None and os.path.exists(docopt_args['--config']):
-        docker_config = read_config(docopt_args['--config'])
+def _read_config_if_exists(spec_or_srpm):
 
-    if docker_config.get('timeout') is None and docker_config_overrides.get('timeout') is None:
-        # Since we want to allow --docker-timeout to override config values:
-        # we cannot use the default property for docopt to automatically populate
-        # docopt_args['--docker-timeout'], hence we insert default value here as
-        # mentioned in __doc__ with normal text not being picked up by docopt.
-        docker_config_overrides.update({'timeout': int(DEFAULT_TIMEOUT)})
 
-    # Remove None values.
-    docker_config_overrides = dict((k, v) for k, v in docker_config_overrides.items() if v)
+    def path_to_config(file):
+        base_name = os.path.basename(file)
 
-    # Update docker config with overrides.
-    docker_config.update(docker_config_overrides)
-    return docker_config
+        # foo.spec  where foo is firstname, spec is lastname
+        first_name = base_name[:base_name.rfind('.')]
+
+        config_base_name = "{0}.dockerrpm".format(first_name)
+        return os.path.join(os.path.dirname(os.path.realpath(file)), config_base_name)
+
+    full_path_config = path_to_config(spec_or_srpm)
+    if os.path.exists(full_path_config):
+        return _open_and_read_config(full_path_config)
+    else:
+        return defaultdict(None, {})
+
+
+def get_parsed_config(args):
+    if args['--spec'] is not None:
+        return _read_config_if_exists(args['--spec'])
+    elif args['--srpm'] is not None:
+        return _read_config_if_exists(args['--srpm'])
+    else:
+        return defaultdict(None, {})
+
+
+
+
+def get_docker_config(docopt_args, config):
+    args_overriden_docker_config = {
+        'base_url': docopt_args['--docker-base_url'] or config.get('base_url'),
+         'timeout': int(docopt_args['--docker-timeout'] or config.get('timeout') or DEFAULT_TIMEOUT),
+         'version': docopt_args['--docker-version'] or config.get('version')}
+
+    # Remove None values and convert to default dict
+    return defaultdict(None, dict((k, v) for k, v in args_overriden_docker_config.items() if v))

@@ -1,5 +1,5 @@
 from mock import mock_open, patch, DEFAULT, MagicMock
-import unittest
+import unittest2 as unittest
 
 from rpmbuild import PackagerContext, PackagerException
 
@@ -29,9 +29,9 @@ class PackagerContextTestCase(unittest.TestCase):
     @patch('tempfile.mkdtemp', return_value='/context')
     def test_packager_context_setup_macrofiles(self, mkdtemp, copy):
         with patch('rpmbuild.open', self.open, create=True):
-            context = PackagerContext('foo', macrofiles=['foo.macro'])
+            context = PackagerContext('foo', macrofiles=['foo.macro'], spec='foo.spec')
             context.setup()
-            copy.assert_called_with('foo.macro', '/context')
+            copy.assert_any_call('foo.macro', '/context')
 
     @patch('shutil.copy')
     @patch('tempfile.mkdtemp', return_value='/context')
@@ -48,9 +48,9 @@ class PackagerContextTestCase(unittest.TestCase):
     @patch('tempfile.mkdtemp', return_value='/context')
     def test_packager_context_setup_sources(self, mkdtemp, copy):
         with patch('rpmbuild.open', self.open, create=True):
-            context = PackagerContext('foo', sources=['foo.tar.gz'])
+            context = PackagerContext('foo', sources=['foo.tar.gz'], spec='foo.spec')
             context.setup()
-            copy.assert_called_with('foo.tar.gz', '/context')
+            copy.assert_any_call('foo.tar.gz', '/context')
 
     @patch.multiple('shutil', copy=DEFAULT, copytree=DEFAULT)
     @patch('tempfile.mkdtemp', return_value='/context')
@@ -83,17 +83,17 @@ class PackagerContextTestCase(unittest.TestCase):
             PackagerContext(image=None)
 
     def test_defines_is_empty_list_if_not_provided(self):
-        self.assertEqual(PackagerContext(image='foo').defines, [])
+        self.assertEqual(PackagerContext(spec='foo.spec', image='foo').defines, [])
 
     def test_sources_is_empty_list_if_not_provided(self):
-        self.assertEqual(PackagerContext(image='foo').sources, [])
+        self.assertEqual(PackagerContext(srpm='foo.srpm', image='foo').sources, [])
 
     def test_sources_dir_is_set_if_path_exists(self):
         self.file = '/root/magicfile.txt'
         with patch('os.path.exists') as exists_mock:
             exists_mock.return_value = True
             self.assertEqual(
-                PackagerContext(image='foo', sources_dir=self.file).sources_dir,
+                PackagerContext(image='foo', sources_dir=self.file, spec='foo.spec').sources_dir,
                 self.file,
                 'Sources dir should exists if os.path.exists says it does exists.')
 
@@ -101,5 +101,13 @@ class PackagerContextTestCase(unittest.TestCase):
         self.file = '/root/magicfile.txt'
         with patch('os.path.exists') as exists_mock:
             exists_mock.return_value = False
-            self.assertIsNone(PackagerContext(image='foo', sources_dir=self.file).sources_dir,
+            self.assertIsNone(PackagerContext(image='foo', sources_dir=self.file, spec='foo.spec').sources_dir,
                               'Sources dir should not be set when os.path.exists says it does not')
+
+    def test_packager_context_raises_packagerexception_if_spec_and_srpm_is_none(self):
+        with self.assertRaises(PackagerException):
+            PackagerContext('foo', spec=None, srpm=None)
+
+        # These are valid:
+        PackagerContext('foo', spec='bar.spec', srpm=None)
+        PackagerContext('foo', srpm='foo.srpm')
