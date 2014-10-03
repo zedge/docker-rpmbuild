@@ -24,7 +24,6 @@ CONFIG_OPTIONS_BUILD = {
     'define': 'multi-get',
     'source': 'multi-get',
     'sources_dir': 'get',
-    'spec': 'get',
     'macrofile': 'multi-get',
     'retrieve': 'getboolean',
     'output': 'get',
