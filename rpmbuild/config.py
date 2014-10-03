@@ -20,7 +20,7 @@ CONFIG_OPTIONS_DOCKER = {
     'base_url': 'get'
 }
 
-CONFIG_OPTIONS_BUILD = {
+CONFIG_OPTIONS_RPMBUILD = {
     'define': 'multi-get',
     'source': 'multi-get',
     'sources_dir': 'get',
@@ -32,7 +32,7 @@ CONFIG_OPTIONS_BUILD = {
 
 SECTION_CONFIG_MAP = {
     'docker': CONFIG_OPTIONS_DOCKER,
-    'build': CONFIG_OPTIONS_BUILD
+    'rpmbuild': CONFIG_OPTIONS_RPMBUILD
 }
 
 

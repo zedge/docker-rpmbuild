@@ -175,12 +175,12 @@ version=1.11
 
 
     def setup_multiget_two_sources(self):
-        self.raw_config = """[build]
+        self.raw_config = """[rpmbuild]
 source=foo
        bar
 """
     def setup_multiget_four_sources(self):
-        self.raw_config = """[build]
+        self.raw_config = """[rpmbuild]
 source=foo
        bar
         keke
@@ -193,7 +193,7 @@ source=foo
         config = ConfigParser()
         config.readfp(StringIO(self.raw_config))
 
-        config_dict = _read_section('build', {'source': 'multi-get'}, config)
+        config_dict = _read_section('rpmbuild', {'source': 'multi-get'}, config)
         self.assertIsInstance(config_dict.get('source'), list)
 
     def test_read_section_multi_get_contains_correct_number_of_items(self):
@@ -201,19 +201,19 @@ source=foo
         config = ConfigParser()
 
         config.readfp(StringIO(self.raw_config))
-        config_dict = _read_section('build', {'source': 'multi-get'}, config)
+        config_dict = _read_section('rpmbuild', {'source': 'multi-get'}, config)
         self.assertEqual(2, len(config_dict.get('source')))
 
         self.setup_multiget_four_sources()
         config = ConfigParser()
         config.readfp(StringIO(self.raw_config))
-        config_dict = _read_section('build', {'source': 'multi-get'}, config)
+        config_dict = _read_section('rpmbuild', {'source': 'multi-get'}, config)
         self.assertEqual(4, len(config_dict.get('source')))
         self.assertEqual('keke', config_dict.get('source')[-2])
 
     @patch('rpmbuild.config.os.path.exists', return_value=True)
     def test_get_parsed_config_reads_config_file_with_spec_goal(self, os_exists_mock):
-        raw_config = """[build]
+        raw_config = """[rpmbuild]
 image=debian
 define=_sysconfdir /etc/foo
        _binddir /bin
@@ -243,7 +243,7 @@ sources_dir=super_directory_with_sources
 
     @patch('rpmbuild.config.os.path.exists', return_value=True)
     def test_get_parsed_config_reads_config_file_with_srpm_goal(self, os_exists_mock):
-        raw_config = """[build]
+        raw_config = """[rpmbuild]
 image=debian
 define=_sysconfdir /etc/foo
        _binddir /bin
