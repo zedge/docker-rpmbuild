@@ -7,8 +7,14 @@ except ImportError:
     from configparser import ConfigParser
     from io import StringIO
 
+import sys
+if sys.version_info >= (3,):
+    import unittest
+else:
+    import unittest2 as unittest
+
 from collections import defaultdict
-import unittest2 as unittest
+
 from mock import mock_open, patch
 from rpmbuild.config import _read_config, _read_section, get_docker_config, DEFAULT_TIMEOUT, get_parsed_config
 

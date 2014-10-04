@@ -8,12 +8,16 @@ except ImportError:
     from configparser import ConfigParser
     from io import StringIO
 
+import sys
+if sys.version_info >= (3,):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
+
 from docker import Client
 from docopt import DocoptExit
 
 from mock import call, MagicMock, patch
-import sys
-from unittest2 import TestCase
 from rpmbuild import build, PackagerException
 
 

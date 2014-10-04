@@ -1,5 +1,10 @@
+import sys
+if sys.version_info >= (3,):
+    import unittest
+else:
+    import unittest2 as unittest
+
 from mock import mock_open, patch, DEFAULT, MagicMock
-import unittest2 as unittest
 
 from rpmbuild import PackagerContext, PackagerException
 

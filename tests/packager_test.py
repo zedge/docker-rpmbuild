@@ -1,6 +1,11 @@
 #!/usr/bin/env python
+import sys
+if sys.version_info >= (3,):
+    import unittest
+else:
+    import unittest2 as unittest
+
 from mock import mock_open, patch, MagicMock
-import unittest2 as unittest
 
 from rpmbuild import Packager, PackagerException
 
