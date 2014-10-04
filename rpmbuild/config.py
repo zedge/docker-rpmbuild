@@ -68,7 +68,7 @@ def _read_config(config_file):
     config.readfp(config_file)
     config_dict = {}
 
-    for section, config_options in SECTION_CONFIG_MAP.iteritems():
+    for section, config_options in SECTION_CONFIG_MAP.items():
         config_dict.update(_read_section(section, config_options, config))
 
     return defaultdict(None, config_dict)
