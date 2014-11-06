@@ -42,6 +42,7 @@ from __future__ import print_function, unicode_literals
 
 import json
 import sys
+import os
 
 from docopt import docopt, DocoptExit
 from rpmbuild import Packager, PackagerContext, PackagerException
@@ -55,16 +56,19 @@ def log(message, file=None):
         print(message)
 
 
-def get_context(args, config):
+def get_context(args, config, path_to_config):
     context = None
+    if path_to_config is None:
+        path_to_config=''
+    path_to_config = os.path.split(path_to_config)[0]
     if args['build'] or config.get('build'):
         context = PackagerContext(
             args['<image>'] or config.get('image'),
             defines=args['--define'] or config.get('define'),
-            sources=args['--source'] or config.get('source'),
-            sources_dir=args['--sources-dir'] or config.get('sources_dir'),
-            spec=args['--spec'] or config.get('spec'),
-            macrofiles=args['--macrofile'] or config.get('macrofile'),
+            sources=args['--source'] or config.get('source') and [os.path.join(path_to_config, x) for x in config.get('source')],
+            sources_dir=args['--sources-dir'] or config.get('sources_dir') and os.path.join(path_to_config, config.get('sources_dir')),
+            spec=args['--spec'] or config.get('spec') and os.path.join(path_to_config, config.get('spec')),
+            macrofiles=args['--macrofile'] or config.get('macrofile') and [os.path.join(path_to_config, x) for x in config.get('macrofile')],
             retrieve=args['--retrieve'] or config.get('retrieve'),
         )
 
@@ -79,8 +83,8 @@ def get_context(args, config):
 
 def main():
     args = docopt(__doc__, version='Docker Packager 0.0.1')
-    config = get_parsed_config(args)
-    context = get_context(args, config)
+    config, path_to_config = get_parsed_config(args)
+    context = get_context(args, config, path_to_config)
 
     try:
         with Packager(context,  get_docker_config(args, config)) as p:

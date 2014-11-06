@@ -92,9 +92,9 @@ def _read_config_if_exists(spec_or_srpm):
 
     full_path_config = path_to_config(spec_or_srpm)
     if os.path.exists(full_path_config):
-        return _open_and_read_config(full_path_config)
+        return (_open_and_read_config(full_path_config), full_path_config)
     else:
-        return defaultdict(None, {})
+        return (defaultdict(None, {}), None)
 
 
 def get_parsed_config(args):
@@ -103,7 +103,7 @@ def get_parsed_config(args):
     elif args['--srpm'] is not None:
         return _read_config_if_exists(args['--srpm'])
     else:
-        return defaultdict(None, {})
+        return (defaultdict(None, {}), None)
 
 
 
