@@ -17,6 +17,8 @@ class PackagerContext(object):
     RUN yum -y install rpmdevtools yum-utils tar
     RUN rpmdev-setuptree
 
+    RUN sed -i 's/%_topdir.*/%_topdir \/rpmbuild/g' $HOME/.rpmmacros
+
     {% if sources_dir is not none %}
     ADD SOURCES /rpmbuild/SOURCES
     {% endif %}
