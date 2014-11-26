@@ -243,7 +243,7 @@ sources_dir=super_directory_with_sources
         with patch('rpmbuild.config.open', mock_open(), create=True) as m:
             m.return_value.__enter__.return_value = StringIO(raw_config)
 
-            config = get_parsed_config(docopt_args)
+            config, path_to_config = get_parsed_config(docopt_args)
             self.assertEqual('super_directory_with_sources', config.get('sources_dir'))
             self.assertEqual(4, len(config.get('source')))
 
@@ -273,7 +273,7 @@ sources_dir=super_directory_with_sources
         with patch('rpmbuild.config.open', mock_open(), create=True) as m:
             m.return_value.__enter__.return_value = StringIO(raw_config)
 
-            config = get_parsed_config(docopt_args)
+            config, path_config = get_parsed_config(docopt_args)
             self.assertEqual('super_directory_with_sources', config.get('sources_dir'))
             self.assertEqual(4, len(config.get('source')))
 
@@ -285,7 +285,7 @@ sources_dir=super_directory_with_sources
             '--srpm': None,
             'build': True,
         }
-        config = get_parsed_config(docopt_args)
+        config, path_to_config = get_parsed_config(docopt_args)
         self.assertIsInstance(config, defaultdict)
         self.assertEqual(0, len(config.keys()))
 
@@ -297,6 +297,6 @@ sources_dir=super_directory_with_sources
             'build': True,
         }
 
-        config = get_parsed_config(docopt_args)
+        config, path_to_config = get_parsed_config(docopt_args)
         self.assertIsInstance(config, defaultdict)
         self.assertEqual(0, len(config.keys()))

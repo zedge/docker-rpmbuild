@@ -50,6 +50,7 @@ class BuildTest(TestCase):
             packager_mock_enter = MagicMock()
             packager_mock_enter.build_image.side_effect = PackagerException('foo')
             packager_mock.return_value.__enter__.return_value = packager_mock_enter
+            config_mock.return_value = defaultdict(None, {}), None
 
             build.main()
 
@@ -78,6 +79,7 @@ class BuildTest(TestCase):
             ]
             packager_mock_enter.build_package.return_value = [MagicMock(spec=Client), [MagicMock()]]
             packager_mock.return_value.__enter__.return_value = packager_mock_enter
+            config_mock.return_value = defaultdict(None, {}), None
 
             build.main()
             print_mock.assert_any_call(
@@ -104,6 +106,7 @@ class BuildTest(TestCase):
             packager_mock_enter.export_package.return_value = ['/tmp/a_build.rpm']
             packager_mock_enter.build_package.return_value = [MagicMock(spec=Client), [MagicMock()]]
             packager_mock.return_value.__enter__.return_value = packager_mock_enter
+            config_mock.return_value = defaultdict(None, {}), None
 
             build.main()
 
@@ -135,6 +138,7 @@ class BuildTest(TestCase):
             packager_mock_enter.export_package.return_value = ['/rpmbuild/a_build.rpm']
             packager_mock_enter.build_package.return_value = [MagicMock(spec=Client), [MagicMock()]]
             packager_mock.return_value.__enter__.return_value = packager_mock_enter
+            config_mock.return_value = defaultdict(None, {}), None
 
             build.main()
 
@@ -178,18 +182,26 @@ class BuildTest(TestCase):
             'rebuild': False
         }
 
-        context = build.get_context(args, config)
+        base_dir = '/etc/'
+        context = build.get_context(args, config, '{0}{1}'.format(base_dir, 'config.ini'))
         self.assertEqual(context.image, 'debian')
         self.assertEqual(context.defines, ['_sysconfdir /etc/foo', '_binddir /bin'])
-        self.assertEqual(context.spec, 'super_advanced.spec')
-        self.assertEqual(context.macrofiles, ['silly macros.spec', 'macro2.spec'])
+        self.assertEqual(context.spec, '{0}{1}'.format(base_dir, 'super_advanced.spec'))
+        self.assertEqual(context.macrofiles, ['{0}{1}'.format(base_dir,'silly macros.spec'), '{0}{1}'.format(base_dir, 'macro2.spec')])
         self.assertEqual(context.retrieve, True)
-        self.assertEqual(context.sources, ['source-foo', 'source-bar', 'keke-source', 'docker-source'])
-        self.assertEqual(context.sources_dir, 'super_directory_with_sources')
+        self.assertEqual(context.sources, [
+            '{0}{1}'.format(base_dir, 'source-foo'),
+            '{0}{1}'.format(base_dir,'source-bar'),
+            '{0}{1}'.format(base_dir,'keke-source'),
+            '{0}{1}'.format(base_dir, 'docker-source')
+        ])
+        self.assertEqual(context.sources_dir, '{0}{1}'.format(base_dir, 'super_directory_with_sources'))
+
+
 
     def test_get_context_with_missing_docopt_options_raises_docoptexit(self):
         with self.assertRaises(DocoptExit):
-            build.get_context({'build': False, 'rebuild': False}, defaultdict(None, {}))
+            build.get_context({'build': False, 'rebuild': False}, defaultdict(None, {}), '/etc/config.ini')
 
 
     def mock_it(self, builtin_name):
