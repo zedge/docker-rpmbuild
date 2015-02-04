@@ -167,7 +167,7 @@ class Packager(object):
 
     @property
     def image_name(self):
-        return 'rpmbuild-%s' % self.context
+        return 'rpmbuild_%s' % self.context
 
     @property
     def image(self):
