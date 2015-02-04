@@ -1,11 +1,26 @@
 #!/usr/bin/env python
 
 import os
+import re
+import ntpath
 import shutil
 import tempfile
 
 from jinja2 import Template
 import docker
+
+INVALID_DOCKER_TAGNAME = '[^a-z0-9_.]'
+
+def path_leaf(path):
+    if path is None:
+        return None
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+def replace_invalid_chars(value):
+    if value is None:
+        return None
+    return re.sub(INVALID_DOCKER_TAGNAME, '_', value)
 
 
 class PackagerContext(object):
@@ -43,7 +58,7 @@ class PackagerContext(object):
         self.template = Template(self._dockerfile())
 
     def __str__(self):
-        return self.spec or self.srpm
+        return replace_invalid_chars(path_leaf(self.spec)) or replace_invalid_chars(path_leaf(self.srpm))
 
     def _dockerfile(self):
         """Hacking up the unintentional tarball unpack
