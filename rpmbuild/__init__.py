@@ -69,34 +69,34 @@ class PackagerContext(object):
             RUN yum -y install rpmdevtools yum-utils tar
             RUN rpmdev-setuptree
             
-            RUN sed -i 's/%_topdir.*/%_topdir \/rpmbuild/g' $HOME/.rpmmacros
+            RUN sed -i 's/%_topdir.*/%_topdir \/rpmbuild\/build/g' $HOME/.rpmmacros
 
             {% if sources_dir is not none %}
-            ADD SOURCES /rpmbuild/SOURCES
+            ADD SOURCES /rpmbuild/build/SOURCES
             {% endif %}
             {% for source in sources %}
-            ADD {{ source }} /rpmbuild/SOURCES/{{ source }}
-            RUN cd /rpmbuild/SOURCES; if [ -d {{ source }} ]; then mv {{ source }} {{ source }}.tmp; tar -C {{ source }}.tmp -czvf {{ source }} .; rm -r {{ source }}.tmp; fi
-            RUN chown -R root:root /rpmbuild/SOURCES
+            ADD {{ source }} /rpmbuild/build/SOURCES/{{ source }}
+            RUN cd /rpmbuild/build/SOURCES; if [ -d {{ source }} ]; then mv {{ source }} {{ source }}.tmp; tar -C {{ source }}.tmp -czvf {{ source }} .; rm -r {{ source }}.tmp; fi
+            RUN chown -R root:root /rpmbuild/build/SOURCES
             {% endfor %}
 
             {% if spec %}
             {% for macrofile in macrofiles %}
-            ADD {{ macrofile }} /rpmbuild/SPECS/{{ macrofile }}
+            ADD {{ macrofile }} /rpmbuild/build/SPECS/{{ macrofile }}
             {% endfor %}
-            ADD {{ spec }} /rpmbuild/SPECS/{{ spec }}
-            RUN chown -R root:root /rpmbuild/SPECS
+            ADD {{ spec }} /rpmbuild/build/SPECS/{{ spec }}
+            RUN chown -R root:root /rpmbuild/build/SPECS
             {% if retrieve %}
-            RUN spectool -g -R -A /rpmbuild/SPECS/{{ spec }}
+            RUN spectool -g -R -A /rpmbuild/build/SPECS/{{ spec }}
             {% endif %}
-            RUN yum-builddep -y /rpmbuild/SPECS/{{ spec }}
-            CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/SPECS/{{ spec }}
+            RUN yum-builddep -y /rpmbuild/build/SPECS/{{ spec }}
+            CMD rpmbuild {% for define in defines %} --define '{{ define }}' {% endfor %} -ba /rpmbuild/build/SPECS/{{ spec }}
             {% endif %}
 
             {% if srpm %}
-            ADD {{ srpm }} /rpmbuild/SRPMS/{{ srpm }}
-            RUN chown -R root:root /rpmbuild/SRPMS
-            CMD rpmbuild --rebuild /rpmbuild/SRPMS/{{ srpm }}
+            ADD {{ srpm }} /rpmbuild/build/SRPMS/{{ srpm }}
+            RUN chown -R root:root /rpmbuild/build/SRPMS
+            CMD rpmbuild --rebuild /rpmbuild/build/SRPMS/{{ srpm }}
             {% endif %}
 
             """
